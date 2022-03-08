@@ -1,0 +1,4 @@
+main: io.github.wand555.Main
+name: DisplayUtil
+version: '1.0'
+api-version: 1.18
