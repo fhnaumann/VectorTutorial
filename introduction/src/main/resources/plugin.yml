@@ -1,0 +1,13 @@
+  name: VectorTutorial
+  main: io.github.wand555.Main
+  version: 1.0
+  description: Plugin for demonstrating vectors in Minecraft.
+  author: wand555
+  prefix: VectorTutorial
+  commands:
+    entity-look-at-player:
+      description: Spawns an entity and makes it look at the player at all times.
+      aliases: elap
+    arrow-reflection:
+      description: Makes arrows bounce all around
+      aliases: ar

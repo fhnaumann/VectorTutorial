@@ -1,0 +1,6 @@
+# This file is used internally by FFMPEG.
+file 'file:D:/VectorTutorial/introduction/src/media/videos/introduction/1080p60/partial_movie_files/CrossProduct/3475136606_3808450660_50442721.mp4'
+file 'file:D:/VectorTutorial/introduction/src/media/videos/introduction/1080p60/partial_movie_files/CrossProduct/4023371716_4085411167_173271035.mp4'
+file 'file:D:/VectorTutorial/introduction/src/media/videos/introduction/1080p60/partial_movie_files/CrossProduct/2902887368_3675138947_2966328071.mp4'
+file 'file:D:/VectorTutorial/introduction/src/media/videos/introduction/1080p60/partial_movie_files/CrossProduct/2984019812_781748622_3568822106.mp4'
+file 'file:D:/VectorTutorial/introduction/src/media/videos/introduction/1080p60/partial_movie_files/CrossProduct/995857302_2061229911_1878671049.mp4'

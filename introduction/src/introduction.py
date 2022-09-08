@@ -1,9 +1,14 @@
-from distutils.command.build_scripts import first_line_re
+import re
 from telnetlib import DO
 from tkinter import TOP
+from turtle import Vec2D
 from manim import *
 import time
 import math
+import numpy as np
+from darcula_style import DarculaStyle
+from MyCode import MyCode
+
 
 class SimpleGraph(VectorScene):
 	def construct(self):
@@ -146,7 +151,67 @@ class Subtraction(VectorScene):
 class DotProduct(VectorScene):
 	def construct(self):
 		# self.simple_dot_product()
-		self.show_dot_product_values()
+		# self.show_dot_product_values()
+
+		axes = Axes(x_range=[-2,2], x_length=12, y_range=[-2,2], y_length=12)
+		axes.add_coordinates()
+		self.add(
+			axes.get_x_axis().set_color(RED), 
+			axes.get_y_axis().set_color(BLUE), 
+			axes.get_x_axis_label(label="x").set_color(RED), 
+			axes.get_y_axis_label(label="z").set_color(BLUE).shift(UP*2.5)
+		)
+
+		theta_tracker = ValueTracker(1)
+
+		fixed_coords = axes.c2p(*[1/2,math.sqrt(3)/2])
+		fixed_vec = self.add_vector(fixed_coords, animate=False).set_color(GREEN)
+		rotating_vec = fixed_vec.copy().rotate(0.1*DEGREES).set_color(ORANGE)
+		theta_tex = MathTex(r"\theta="+str(int(theta_tracker.get_value()))+r"^{\circ}", color=PURPLE).move_to(Angle(fixed_vec, rotating_vec, radius=0.5+3*SMALL_BUFF, other_angle=False).point_from_proportion(0.5))
+		
+		def dot_result(vec1, vec2):
+			res = np.array(axes.p2c(vec1.get_end())) @ np.array(axes.p2c(vec2.get_end()))
+			return str(round(res, 2))
+		
+		dot_tex = MathTex(r"\vec{a}", r"\bullet", r"\vec{b}", "=", dot_result(fixed_vec, rotating_vec)).shift(UR*3)
+		dot_tex.set_color_by_tex(tex=r"\vec{a}", color=GREEN)
+		dot_tex.set_color_by_tex(tex=r"\vec{b}", color=ORANGE)
+		dot_tex.set_color_by_tex(tex=dot_result(fixed_vec, rotating_vec), color=PURPLE)
+		angle = Angle(fixed_vec, rotating_vec, radius=0.5, other_angle=False)
+		self.add(rotating_vec, angle, theta_tex, dot_tex)
+
+		rotating_vec.add_updater(
+			lambda x: x.become(fixed_vec.copy()).set_color(ORANGE).rotate(theta_tracker.get_value() * DEGREES,about_point=ORIGIN)
+		)
+
+		angle.add_updater(
+			lambda x: x.become(Angle(fixed_vec, rotating_vec, radius=0.5, other_angle=False if theta_tracker.get_value() < 180 else True, color=PURPLE))
+		)
+		theta_tex.add_updater(
+			lambda x: x.become(
+				MathTex(r"\theta="+str(int(theta_tracker.get_value() if theta_tracker.get_value() <= 180 else 360-theta_tracker.get_value())) + r"^{\circ}", color=PURPLE)
+				)
+				.move_to(Angle(fixed_vec, rotating_vec, radius=0.5+3*SMALL_BUFF, other_angle=False if theta_tracker.get_value() < 180 else True)
+					.point_from_proportion(0.5)
+				)
+		)
+		
+		def update_dot_text(x):
+			dot_res = dot_result(fixed_vec, rotating_vec)
+			math_tex = MathTex(r"\vec{a}", r"\bullet", r"\vec{b}", "=", dot_res)
+			math_tex.set_color_by_tex(tex=r"\vec{a}", color=GREEN)
+			math_tex.set_color_by_tex(tex=r"\vec{b}", color=ORANGE)
+			math_tex.set_color_by_tex(tex=dot_res, color=PURPLE)
+			x.become(math_tex).shift(UR*3)
+
+		dot_tex.add_updater(update_dot_text)
+		self.play(theta_tracker.animate.set_value(180), run_time=5)
+		self.wait()
+		self.play(theta_tracker.animate.set_value(360), run_time=5)
+
+
+
+
 
 	def show_dot_product_values(self):
 		axes = Axes(x_range=[-2,2], x_length=12, y_range=[-2,2], y_length=12)
@@ -227,15 +292,95 @@ class DotProduct(VectorScene):
 		self.play(Write(equation))
 		self.wait()
 
+class CrossProduct(ThreeDScene):
+	def construct(self):
+		# x -> z
+		# y -> x
+		# z -> y
+		axes = ThreeDAxes(x_range=[-2, 2, 1], y_range=[-2, 2, 1], z_range=[-2, 2, 1])
+		axes.get_x_axis().set_color(BLUE)
+		axes.get_y_axis().set_color(RED)
+		axes.get_z_axis().set_color(GREEN)
+		axis_labels = VGroup(
+			axes.get_x_axis_label("z").set_color(BLUE), 
+			axes.get_y_axis_label("x").set_color(RED).shift(UP*1.9), 
+			axes.get_z_axis_label("y").set_color(GREEN).flip(axis=Z_AXIS))
+		self.add(axis_labels)
+		self.set_camera_orientation(phi=75*DEGREES, theta=30*DEGREES)
+		self.add(axes)
+		vec1 = Vector(direction=axes.c2p(*fromMC(3,0,1, normalize=True))).set_color(ORANGE)
+		vec2 = Vector(direction=axes.c2p(*fromMC(-0.5,2,1, normalize=True))).set_color(TEAL)
+		vec3 = Vector(direction=axes.c2p(*fromMC(-2,-3.5,6, normalize=True))).set_color(PURPLE)
+		self.add(vec1, vec2)
+		self.begin_ambient_camera_rotation(rate=0.1)
+		self.wait()
+		self.play(GrowArrow(vec3))
+		self.wait(3)
+		self.play(
+			Transform(vec1, Vector(direction=axes.c2p(*fromMC(1,0,0))).set_color(ORANGE)),
+			Transform(vec2, Vector(direction=axes.c2p(*fromMC(0,1,0))).set_color(TEAL)),
+			Transform(vec3, Vector(direction=axes.c2p(*fromMC(0,0,1))).set_color(PURPLE))
+		)
+		self.wait()
+
+class EntityLookAtPlayer1(VectorScene):
+	def construct(self):
+		axes, labels = setup_2d_axes(self)
+		steve_head = ImageMobject("steve_head.png").scale(0.1).move_to(axes.c2p(-3,-1))
+		sheep_head = ImageMobject("sheep_head.jpg").scale(0.1).move_to(axes.c2p(2,5))
+		player_vec = Vector(np.array([-3,-1])).set_color(GREEN)
+		sheep_vec =  Vector(np.array([2,5])).set_color(ORANGE)
+		# player_vec = self.add_vector([-3,-1], animate=True, color=GREEN)#.set_color(GREEN)
+		# sheep_vec = self.add_vector([2,5], animate=True, color=ORANGE)#.set_color(ORANGE)
+		from_player = Vector([-2,-5]).set_color(ORANGE)
+		subtract_vec = Vector([-5,-6]).set_color(PURPLE)
+		math_animation = Group(axes, labels, steve_head, sheep_head, player_vec, sheep_vec, from_player, subtract_vec).scale(0.6).shift(LEFT*3)
+
+		print(Code.styles_list)
+		codeTest = Code(file_name="EntityLookAtPlayer.java", background="window", style='dracula', line_spacing=1).scale(0.7).shift(RIGHT*2.1 + DOWN*2)
+
+		self.add(axes, labels)
+
+		self.play(Write(codeTest), run_time=0.5)
+
+		self.wait()
+		self.play(FadeIn(steve_head), FadeIn(sheep_head))
+		self.bring_to_back(steve_head, sheep_head)
+		self.wait()
+
+		marker = SurroundingRectangle(codeTest.code.chars[0])
+		self.play(FadeIn(marker), run_time=0.5)
+		self.play(GrowArrow(player_vec))
+		self.play(Transform(marker, SurroundingRectangle(codeTest.code.chars[1])), run_time=0.5)
+		self.play(GrowArrow(sheep_vec))
+		self.wait()
+		self.play(Transform(marker, SurroundingRectangle(codeTest.code.chars[2])), run_time=0.5)
+		self.play(Transform(sheep_vec, from_player))
+		self.wait()
+		self.play(ApplyMethod(sheep_vec.put_start_and_end_on, axes.c2p(-3,-1), axes.c2p(-5,-6)), run_time=2)
+		# self.play(sheep_vec.animate.move_to(axes.c2p(*(player_vec.get_end() + sheep_vec.get_end()/2))), run_time=2)
+		self.wait()
+		self.play(GrowArrow(subtract_vec))
+		# subtract_vec = self.add_vector([-5,-6], animate=True, color=PURPLE).shift(UP*1.5)
+		self.wait()
+		self.play(Transform(marker, SurroundingRectangle(codeTest.code.chars[3:])), run_time=0.5)
+		self.play(ApplyMethod(subtract_vec.put_start_and_end_on, axes.c2p(2,5), axes.c2p(-3,-1)), run_time=2)
+		self.wait(2)
+
 def setup_2d_axes(scene):
 	axes = Axes(x_range=[-6, 6], x_length=12, y_range=[-6, 6], y_length=12)
 	axes.add_coordinates()
-	scene.add(
-		axes.get_x_axis().set_color(RED), 
+	labels = VGroup(axes.get_x_axis().set_color(RED), 
 		axes.get_y_axis().set_color(BLUE), 
 		axes.get_x_axis_label(label="x").set_color(RED), 
 		axes.get_y_axis_label(label="z").set_color(BLUE).shift(UP*2.5))
-	return axes
+	return axes, labels
 
 def fromMC(vector):
 	return [vector[2], vector[0], vector[1]]
+def fromMC(*coords, normalize=False):
+	in_manim = [coords[2], coords[0], coords[1]]
+	if normalize:
+		length = math.sqrt(in_manim[0] * in_manim[0] + in_manim[1] * in_manim[1] + in_manim[2] * in_manim[2])
+		in_manim = [in_manim[0] / length, in_manim[1] / length, in_manim[2] / length]
+	return in_manim

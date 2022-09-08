@@ -10,5 +10,8 @@
         <module name="introduction" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="snippets" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
